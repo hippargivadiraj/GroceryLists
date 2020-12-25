@@ -7,6 +7,33 @@
 
 import Foundation
 
+
+
+struct StoreItemViewState: Codable  {
+    var name: String = ""
+    var price: String = ""
+    var quantity: String = ""
+    
+}
+
+struct StoreItemViewModel: Codable {
+    var storeItem : StoreItem
+    
+    var storeItemId: String {
+        storeItem.id ?? " "
+    }
+    
+    var name: String{
+        storeItem.name
+    }
+    var price: Double{
+        storeItem.price
+    }
+    var quantity: Int{
+        storeItem.quantity
+    }
+}
+
 class StoreItemListViewModel: ObservableObject {
     
     
@@ -15,6 +42,8 @@ class StoreItemListViewModel: ObservableObject {
     @Published var store: StoreViewModel?
     var groceryItemName : String = ""
     
+    var storeItemVS  =  StoreItemViewState()
+    @Published var storeItems : [StoreItemViewModel] = [ ]
     
     init(){
         firestoreService = FirestoreService()
@@ -36,6 +65,9 @@ class StoreItemListViewModel: ObservableObject {
         }
     }
     
+  /*
+     New addItemToStore is created Making this addItemsToStore not necessry
+     
     func addItemsToStore(storeId: String)  {
         firestoreService.updateStore(storeId: storeId, values: ["items" : [groceryItemName] ]) { (result) in
             switch result {
@@ -48,6 +80,46 @@ class StoreItemListViewModel: ObservableObject {
             }
         }
     }
+    */
+  
+    func addItemToStore(storeId: String, completion: @escaping (Error?)-> Void ){
+        let storeItem = StoreItem.from(storeItemVS: storeItemVS)
+        firestoreService.updateStore(storeId: storeId, storeItem: storeItem) { (result) in
+            switch result{
+            case .success(_):
+            completion(nil)
+            case.failure( let error):
+                completion(error)
+            }
+        }
+        
+    }
+     
     
+    func getStoreItemsBy(storeId:String)  {
+        firestoreService.getStoreItemsBy(storeId: storeId) { (result) in
+            switch result{
+            case .success(let items):
+                if let items = items {
+                    DispatchQueue.main.async {
+                        self.storeItems = items.map(StoreItemViewModel.init)
+                    }
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            
+            }
+        }
+    }
+    
+    func deleteStoreItem(storeId: String, storeItemId: String ) {
+        firestoreService.deleteStoreItem(storeId: storeId, storeItemId: storeItemId) { (error) in
+            if error == nil {
+                
+                self.getStoreItemsBy(storeId: storeId)
+            }
+            
+        }
+    }
     
 }

@@ -15,27 +15,49 @@ struct StoreItemsLIstView: View {
     
     //    @State var cancellable: AnyCancellable?
     
+   
+    //deleting the index of item
+    private func deleteStoreItem(at indexSet: IndexSet)  {
+        indexSet.forEach {index in
+        let storeItem = storeItemListVM.storeItems[index]
+        storeItemListVM.deleteStoreItem(storeId: store.storeId, storeItemId: storeItem.storeItemId)
+        }
+    }
+    
     var body: some View {
         
         VStack {
-            TextField("Enter Items", text: $storeItemListVM.groceryItemName)
+            TextField("Enter Items", text: $storeItemListVM.storeItemVS.name)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
+
+            TextField("Enter Items", text: $storeItemListVM.storeItemVS.price)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+
+            TextField("Enter Items", text: $storeItemListVM.storeItemVS.quantity)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
             
             Button("save"){
-                storeItemListVM.addItemsToStore(storeId: store.storeId)
+                storeItemListVM.addItemToStore(storeId: store.storeId) { (error) in
+                    
+                    if error == nil {
+                        storeItemListVM.getStoreItemsBy(storeId: store.storeId )
+                    }
+                }
             }
             
-            if let store = storeItemListVM.store {
-                List(store.items, id:\.self ){ item in
-                    Text(item)
-                    
-                }
-                
+            List {
+                ForEach(storeItemListVM.storeItems, id:\.storeItemId ){
+                    storeItem in
+                    Text(storeItem.name)
+                }.onDelete(perform:
+                    deleteStoreItem
+                )
             }
+                
+            
             Spacer()
-        }
         
+        }
         .onAppear(perform: {
             //                cancellable = storeItemListVM.$store.sink { value in
             //                    if let value = value {
@@ -43,7 +65,9 @@ struct StoreItemsLIstView: View {
             //                    }
             //                }
             
-            storeItemListVM.getStoreById(storeId: store.storeId)
+           // storeItemListVM.getStoreById(storeId: store.storeId)
+            
+            storeItemListVM.getStoreItemsBy(storeId: store.storeId)
         })
     }
 }

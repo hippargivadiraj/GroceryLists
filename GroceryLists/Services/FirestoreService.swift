@@ -90,17 +90,80 @@ class FirestoreService {
                     if let error = error {
                         completion(.failure(error))
                     }else{
-                        if let snapshot = snapshot {
-                            var store: Store? = try? snapshot.data(as: Store.self)
-                            if store != nil {
-                                store!.id = snapshot.documentID
+//                        if let snapshot = snapshot {
+//                            var store: Store? = try? snapshot.data(as: Store.self)
+//                            if store != nil {
+//                                store!.id = snapshot.documentID
+//                                completion(.success(store))
+//                            }
+//                        }
+                        // using new get storebyid 
+                        self.getStoreById(storeId: storeId) { (result) in
+                            switch result{
+                            case .success(let store):
                                 completion(.success(store))
+                            case .failure(let error):
+                                completion(.failure(error))
                             }
                         }
+                        
                     }
                 }
             }
         }
+    }
+    
+    
+    func updateStore(storeId:String, storeItem:StoreItem, completion: @escaping (Result<Store?, Error>) ->Void) {
+        do{
+            //Update Store Here
+            let _ = try db.collection("stores")
+                .document(storeId)
+                .collection("items")
+                .addDocument(from: storeItem)
+            
+           // Also get the updated Store
+            self.getStoreById(storeId: storeId) { (result) in
+                switch result{
+                case .success(let store):
+                    completion(.success(store))
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        }catch{
+            
+        }
+    }
+    
+  // This gets items by SoreId
+    func getStoreItemsBy(storeId: String, completion: @escaping ( Result <  [ StoreItem ]?,  Error >)-> Void )  {
+        let ref = db.collection("stores").document(storeId).collection("items")
+        ref.getDocuments { (snapshot, error) in
+            if let error = error {
+                completion(.failure(error))
+            }else{
+                if let snapshot = snapshot {
+                    let items : [StoreItem]? =  snapshot.documents.compactMap { doc in
+                       var storeItem =  try? doc.data(as: StoreItem.self)
+                        storeItem?.id = doc.documentID
+                        return storeItem
+                    }
+                        completion(.success(items))
+                }
+            }
+        }
+    }
+    
+    //Delete a Store Item
+    func deleteStoreItem(storeId: String, storeItemId: String, completion: @escaping ( Error? )-> Void)  {
+        db.collection("stores")
+            .document(storeId)
+            .collection("items")
+            .document(storeItemId)
+            .delete { (error) in
+                completion(error)
+            }
     }
     
     
