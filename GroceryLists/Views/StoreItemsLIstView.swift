@@ -13,6 +13,8 @@ struct StoreItemsLIstView: View {
     var store: StoreViewModel
     @StateObject private var storeItemListVM = StoreItemListViewModel()
     
+    @State var storeItemVS = StoreItemViewState()
+    
     //    @State var cancellable: AnyCancellable?
     
    
@@ -27,19 +29,20 @@ struct StoreItemsLIstView: View {
     var body: some View {
         
         VStack {
-            TextField("Enter Items", text: $storeItemListVM.storeItemVS.name)
+            TextField("Enter Items", text: $storeItemVS.name)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
 
-            TextField("Enter Items", text: $storeItemListVM.storeItemVS.price)
+            TextField("Enter Items", text: $storeItemVS.price)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
 
-            TextField("Enter Items", text: $storeItemListVM.storeItemVS.quantity)
+            TextField("Enter Items", text: $storeItemVS.quantity)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
             
             Button("save"){
-                storeItemListVM.addItemToStore(storeId: store.storeId) { (error) in
+                storeItemListVM.addItemToStore(storeId: store.storeId, storeItemVS: storeItemVS) { (error) in
                     
                     if error == nil {
+                        storeItemVS = StoreItemViewState()
                         storeItemListVM.getStoreItemsBy(storeId: store.storeId )
                     }
                 }

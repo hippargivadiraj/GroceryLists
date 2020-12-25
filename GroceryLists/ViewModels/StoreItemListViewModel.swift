@@ -42,7 +42,7 @@ class StoreItemListViewModel: ObservableObject {
     @Published var store: StoreViewModel?
     var groceryItemName : String = ""
     
-    var storeItemVS  =  StoreItemViewState()
+ //   var storeItemVS  =  StoreItemViewState()
     @Published var storeItems : [StoreItemViewModel] = [ ]
     
     init(){
@@ -82,7 +82,7 @@ class StoreItemListViewModel: ObservableObject {
     }
     */
   
-    func addItemToStore(storeId: String, completion: @escaping (Error?)-> Void ){
+    func addItemToStore(storeId: String, storeItemVS:StoreItemViewState, completion: @escaping (Error?)-> Void ){
         let storeItem = StoreItem.from(storeItemVS: storeItemVS)
         firestoreService.updateStore(storeId: storeId, storeItem: storeItem) { (result) in
             switch result{
